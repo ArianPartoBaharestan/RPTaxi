@@ -3,14 +3,14 @@ from .models import User
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(max_length=256, allow_null=False)
+    phone = serializers.CharField(max_length=256, allow_null=False)
     password = serializers.CharField(max_length=256, allow_null=False)
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'password')
+        fields = ('phone', 'password')
 
 
 class UserSerializer(serializers.ModelSerializer):

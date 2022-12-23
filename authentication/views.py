@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from . import helper
 
 
-#-------------------------------------------------------- Login ----------------
 class Login(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -30,7 +29,7 @@ class Login(APIView):
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
         try:
-            user = authenticate(request, email=data['email'], password=data['password'])
+            user = authenticate(request, phone=data['phone'], password=data['password'])
             login(request, user)
             token = RefreshToken.for_user(user)
             token_response = { "refresh": str(token), "access": str(token.access_token) }
@@ -39,7 +38,8 @@ class Login(APIView):
         except:
             return Response('username or password is incorrect', status=status.HTTP_406_NOT_ACCEPTABLE)
 
-#---------------------------------------------------------- logout -------------
+
+
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
@@ -47,11 +47,11 @@ class Logout(APIView):
             user = User.objects.get(id=request.user.id)
             return Response('User Logged out successfully', status=status.HTTP_200_OK)
         except Exception as e:
-            print('-------------')
             print(e)
             return Response('Error in logout', status=status.HTTP_400_BAD_REQUEST)
 
-#-------------------------------------------------------- Register -------------
+
+
 class Register(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -59,11 +59,12 @@ class Register(APIView):
         if serializer.is_valid():
             data = serializer.validated_data
         else:
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data = serializer.errors)
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
         code = helper.random_code()
-        profile = User.objects.create_user(email=data['email'], password=data['password'])
+        profile = User.objects.create_user(phone=data['phone'], password=data['password'])
 
         profile.otp = code
+        profile.otp_create_time = datetime.now()
         profile.save()
         if helper.send_code(profile, code):
             activation_send = True
@@ -76,7 +77,8 @@ class Register(APIView):
         response = { 'token':token_response , 'user':UserSerializer(profile).data }
         return Response(response, status=status.HTTP_200_OK)
 
-#--------------------------------------------------------- Profile -------------
+
+
 class Profile(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
@@ -86,13 +88,15 @@ class Profile(APIView):
     def put(self, request, *args, **kwargs):
         profile = User.objects.get(id=request.user.id)
         data = request.data
-        data['username']=profile.username
+        data['phone']=profile.phone
         data['password']=profile.password
         serializer = UserSerializer(profile, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
 
 #------------------------------------------------------ Activation -------------
 class Activation(APIView):
