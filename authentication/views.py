@@ -99,7 +99,7 @@ class Profile(APIView):
 
 
 #------------------------------------------------------ Activation -------------
-class Activation(APIView):
+class OTPActivation(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, *args, **kwargs):
         code = helper.random_code()
