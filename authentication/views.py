@@ -97,7 +97,6 @@ class Profile(APIView):
         return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
-
 #------------------------------------------------------ Activation -------------
 class OTPActivation(APIView):
     permission_classes = [IsAuthenticated]
