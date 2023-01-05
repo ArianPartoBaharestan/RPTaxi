@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'authentication',
     'landing',
+    'Payments',
+    'Service',
+    'TransferRequest',
 ]
 
 MIDDLEWARE = [
