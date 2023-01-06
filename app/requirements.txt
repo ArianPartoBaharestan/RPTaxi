@@ -7,3 +7,6 @@ djangorestframework-simplejwt
 dj-rest-auth
 gunicorn
 Pillow
+psycopg2
+psycopg2-binary
+mysqlclient
