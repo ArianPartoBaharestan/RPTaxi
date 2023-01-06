@@ -12,8 +12,7 @@ docker-compose exec app python manage.py migrate
 docker-compose exec app python manage.py collectstatic
 docker-compose exec app python manage.py createsuperuser
 ```
-<br><br><br>
-
+<br><hr>
 
 
 Build code with docker compose
