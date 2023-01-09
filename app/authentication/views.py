@@ -52,6 +52,8 @@ class Logout(APIView):
 
 
 
+
+
 class Register(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -59,23 +61,57 @@ class Register(APIView):
         if serializer.is_valid():
             data = serializer.validated_data
         else:
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
-        code = helper.random_code()
-        profile = User.objects.create_user(phone=data['phone'], password=data['password'])
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data = serializer.errors)
+        user=User()
+        # send otp
+        otp = helper.get_random_otp()
+        helper.otpsend(data['phone'], otp)
+        # save otp
+        print(otp)
+        user.otp = otp
+        user.otp_create_time = datetime.now()
+        user.save()
+        return Response('کد تایید به شماره {} ارسال شد'.format(user.phone) , status=status.HTTP_200_OK)
 
-        profile.otp = code
-        profile.otp_create_time = datetime.now()
-        profile.save()
-        if helper.send_code(profile, code):
-            activation_send = True
+
+
+
+
+
+
+class Verify(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request):
+        serializer = verifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
         else:
-            activation_send = False
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
 
-        login(request, profile)
-        token = RefreshToken.for_user(profile)
-        token_response = { "refresh": str(token), "access": str(token.access_token), 'activation_send':activation_send }
-        response = { 'token':token_response , 'user':UserSerializer(profile).data }
+        phone = data['phone']
+        user = User.objects.get(phone=phone)
+        otp = data['otp']
+
+        # check otp expiration
+        if not helper.check_otp_expiration(user.phone):
+            return Response(data="کد منقضی شده است، لطفا دوباره امتحان کنید", status=status.HTTP_408_REQUEST_TIMEOUT)
+
+        if user.otp != int(otp):
+            return Response(data="کد اشتباه است", status=status.HTTP_417_EXPECTATION_FAILED)
+
+        user.is_active = True
+        user.save()
+
+        login(request, user)
+        token = RefreshToken.for_user(user)
+        token_response = {"refresh": str(token), "access": str(token.access_token)}
+        response = {'token': token_response, 'user': UserSerializer(user).data}
         return Response(response, status=status.HTTP_200_OK)
+
+
+
+
+
 
 
 

@@ -217,6 +217,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # Directory where uploaded media is
 MEDIA_URL = '/media/' # Public URL at the browser
 
 
+
+
+Kavenegar_API = '4C51383174462B314F3257367578414D6B6B772F4D4953632F654F4D646862597A476A636E7265333334383D'
+
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
