@@ -7,7 +7,7 @@ transportation company with an app that allows passengers to hail a ride and dri
 ## launch
 ```
 docker-compose up -d --build
-docker-compose exec app python manage.py makemigrations advertise authentication fee lottery transactions web
+docker-compose exec app python manage.py makemigrations 
 docker-compose exec app python manage.py migrate
 docker-compose exec app python manage.py collectstatic
 docker-compose exec app python manage.py createsuperuser
