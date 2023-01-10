@@ -53,55 +53,53 @@ class Logout(APIView):
 
 
 
-
 class Register(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
+            serializer.save()
+            user = User.objects.get(phone=data['phone'])
+            login(request, user)
+            token = RefreshToken.for_user(user)
+            token_response = {"refresh": str(token), "access": str(token.access_token)}
+            response = {'token': token_response, 'user': UserSerializer(user).data}
+            return Response(response, status=status.HTTP_200_OK)
         else:
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data = serializer.errors)
-        user=User()
-        # send otp
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
+
+
+
+
+class OTPActivation(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, *args, **kwargs):
         otp = helper.get_random_otp()
-        helper.otpsend(data['phone'], otp)
-        # save otp
-        print(otp)
+        user = User.objects.get(id=self.request.user.id)
         user.otp = otp
         user.otp_create_time = datetime.now()
         user.save()
-        return Response('کد تایید به شماره {} ارسال شد'.format(user.phone) , status=status.HTTP_200_OK)
+        helper.otpsend(user.phone, otp)
+        return Response("Activation code send to {}".format(user.phone) , status=status.HTTP_200_OK)
 
 
 
-
-
-
-
-class Verify(APIView):
-    permission_classes = [AllowAny]
+class OTPConfirmation(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
-        serializer = verifyOTPSerializer(data=request.data)
+        serializer = ConfirmationSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=serializer.errors)
-
-        phone = data['phone']
-        user = User.objects.get(phone=phone)
+        user = User.objects.get(id=self.request.user.id)
         otp = data['otp']
-
-        # check otp expiration
-        if not helper.check_otp_expiration(user.phone):
-            return Response(data="کد منقضی شده است، لطفا دوباره امتحان کنید", status=status.HTTP_408_REQUEST_TIMEOUT)
 
         if user.otp != int(otp):
             return Response(data="کد اشتباه است", status=status.HTTP_417_EXPECTATION_FAILED)
-
         user.is_active = True
         user.save()
-
         login(request, user)
         token = RefreshToken.for_user(user)
         token_response = {"refresh": str(token), "access": str(token.access_token)}
@@ -133,18 +131,7 @@ class Profile(APIView):
         return Response(serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
-#------------------------------------------------------ Activation -------------
-class OTPActivation(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request, *args, **kwargs):
-        code = helper.random_code()
-        profile = User.objects.get(id=self.request.user.id)
-        profile.otp = code
-        profile.save()
-        if helper.send_code(profile, code):
-            return Response("Activation code send to {}".format(profile.email) , status=status.HTTP_200_OK)
-        else:
-            return Response("Error sending email - Please try again!" , status=status.HTTP_400_BAD_REQUEST)
+
 
 #---------------------------------------------------- Confirmation -------------
 class Confirmation(APIView):

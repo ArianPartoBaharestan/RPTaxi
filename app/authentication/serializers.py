@@ -10,7 +10,7 @@ class LoginSerializer(serializers.Serializer):
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('phone', 'password')
+        fields = ('phone', 'password', 'is_driver', 'national_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,10 +21,4 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ConfirmationSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=5, allow_null=False)
-
-
-
-class verifyOTPSerializer(serializers.Serializer):
-    mobile = serializers.CharField(max_length=64, allow_null=False)
     otp = serializers.CharField(max_length=5, allow_null=False)

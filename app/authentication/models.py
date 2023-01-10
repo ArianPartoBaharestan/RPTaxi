@@ -9,7 +9,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=256, unique=True)
     email = models.EmailField(max_length=256, null=True, blank=True, unique=True)
     is_driver = models.BooleanField(default=False)
-    national_code = models.CharField(max_length=256, null=True, blank=True)
+    national_code = models.CharField(max_length=256, unique=True, null=True, blank=True)
     landline_phone = models.CharField(max_length=256, null=True, blank=True)
     father_name = models.CharField(max_length=256, null=True, blank=True)
     birth_date = models.CharField(max_length=256, null=True, blank=True)
