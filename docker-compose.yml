@@ -21,6 +21,20 @@ services:
       "gunicorn --workers=2 --bind=0.0.0.0:8000 core.wsgi:application"
     depends_on:
       - db
+  nginx:
+    image: nginx:1.13
+    restart: always
+    ports:
+      - "8000:80"
+    depends_on:
+      - app
+    networks:
+      - nginx_network
+
 volumes:
   db:
   app:
+
+networks:
+  nginx_network:
+    driver: bridge
